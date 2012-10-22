@@ -1,0 +1,14 @@
+# Mac
+.DS_Store
+
+# Flash
+bin/
+bin-debug/
+bin-release/
+bin-release-temp/
+
+.metadata
+.settings
+.air
+.dmg
+.app
