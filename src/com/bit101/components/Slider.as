@@ -45,6 +45,7 @@ package com.bit101.components
 		protected var _min:Number = 0;
 		protected var _orientation:String;
 		protected var _tick:Number = 0.01;
+		protected var _mouseDown:Boolean;
 		
 		public static const HORIZONTAL:String = "horizontal";
 		public static const VERTICAL:String = "vertical";
@@ -243,6 +244,7 @@ package com.bit101.components
 		 */
 		protected function onDrag(event:MouseEvent):void
 		{
+			_mouseDown = true;
 			stage.addEventListener(MouseEvent.MOUSE_UP, onDrop);
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, onSlide);
 			if(_orientation == HORIZONTAL)
@@ -264,6 +266,7 @@ package com.bit101.components
 			stage.removeEventListener(MouseEvent.MOUSE_UP, onDrop);
 			stage.removeEventListener(MouseEvent.MOUSE_MOVE, onSlide);
 			stopDrag();
+			_mouseDown = false;
 		}
 		
 		/**
@@ -369,6 +372,11 @@ package com.bit101.components
 		{
 			return _tick;
 		}
+
+		public function get mouseDown():Boolean {
+			return _mouseDown;
+		}
+
 		
 	}
 }
