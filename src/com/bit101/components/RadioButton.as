@@ -151,7 +151,7 @@ package com.bit101.components
 			_back.graphics.endFill();
 			
 			_button.graphics.clear();
-			_button.graphics.beginFill(Style.BUTTON_FACE);
+			_button.graphics.beginFill(Style.SELECTED);
 			_button.graphics.drawCircle(5, 5, 3);
 			
 			_label.x = 12;
