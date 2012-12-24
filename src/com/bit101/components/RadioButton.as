@@ -52,8 +52,9 @@ package com.bit101.components
 		 * @param ypos The y position to place this component.
 		 * @param label The string to use for the initial label of this component.
 		 * @param defaultHandler The event handling function to handle the default event for this component (click in this case).
+		 * @param groupName Optionally set a radio button group. Moved to constructor for convenience.
 		 */
-		public function RadioButton(parent:DisplayObjectContainer = null, xpos:Number = 0, ypos:Number =  0, label:String = "", checked:Boolean = false, defaultHandler:Function = null)
+		public function RadioButton(parent:DisplayObjectContainer = null, xpos:Number = 0, ypos:Number =  0, label:String = "", checked:Boolean = false, defaultHandler:Function = null, groupName:String = null)
 		{
 			RadioButton.addButton(this);
 			_selected = checked;
@@ -62,6 +63,9 @@ package com.bit101.components
 			if(defaultHandler != null)
 			{
 				addEventListener(MouseEvent.CLICK, defaultHandler);
+			}
+			if (groupName != null) {
+				this.groupName = groupName;
 			}
 		}
 		
