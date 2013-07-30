@@ -126,7 +126,7 @@ package com.bit101.components
 				_tf.height = Math.min(_tf.textHeight + 4, _height);
 			}
 			_tf.x = 2;
-			_tf.y = Math.round(_height / 2 - _tf.height / 2);
+			_tf.y = Math.round(_height / 2 - _tf.height / 2) - 1; // weird baseline fix
 		}
 		
 		

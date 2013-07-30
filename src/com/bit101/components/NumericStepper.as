@@ -38,13 +38,15 @@ package com.bit101.components
 	[Event(name="change", type="flash.events.Event")]
 	public class NumericStepper extends Component
 	{
+		
+		public var showButtons:Boolean = true;
 		protected const DELAY_TIME:int = 500;
 		protected const UP:String = "up";
-        protected const DOWN:String = "down";
+		protected const DOWN:String = "down";
 		protected var _minusBtn:PushButton;
-
-        protected var _repeatTime:int = 100;
-        protected var _plusBtn:PushButton;
+		
+		protected var _repeatTime:int = 100;
+		protected var _plusBtn:PushButton;
 		protected var _valueText:InputText;
 		protected var _value:Number = 0;
 		protected var _step:Number = 1;
@@ -131,8 +133,17 @@ package com.bit101.components
 		 */
 		public override function draw():void
 		{
-			_plusBtn.x = _width - 16;
-			_minusBtn.x = _width - 32;
+			if (showButtons) {
+				_plusBtn.visible = true;
+				_minusBtn.visible = true;
+				_plusBtn.x = _width - 16;
+				_minusBtn.x = _width - 32;
+			}
+			else {
+				_plusBtn.visible = false;
+				_minusBtn.visible = false;				
+			}
+			
 			_valueText.text = (Math.round(_value * Math.pow(10, _labelPrecision)) / Math.pow(10, _labelPrecision)).toString();
 			_valueText.width = _width - 32;
 			_valueText.draw();
@@ -188,12 +199,12 @@ package com.bit101.components
 				dispatchEvent(new Event(Event.CHANGE));
 			}
 		}
-
+		
 		protected function onDelayComplete(event:TimerEvent):void
 		{
 			_repeatTimer.start();
 		}
-
+		
 		protected function onRepeat(event:TimerEvent):void
 		{
 			if(_direction == UP)
@@ -227,7 +238,7 @@ package com.bit101.components
 		{
 			return _value;
 		}
-
+		
 		/**
 		 * Sets / gets the amount the value will change when the up or down button is pressed. Must be zero or positive.
 		 */
@@ -243,7 +254,7 @@ package com.bit101.components
 		{
 			return _step;
 		}
-
+		
 		/**
 		 * Sets / gets how many decimal points of precision will be shown.
 		 */
@@ -256,7 +267,7 @@ package com.bit101.components
 		{
 			return _labelPrecision;
 		}
-
+		
 		/**
 		 * Sets / gets the maximum value for this component.
 		 */
@@ -273,7 +284,7 @@ package com.bit101.components
 		{
 			return _maximum;
 		}
-
+		
 		/**
 		 * Sets / gets the maximum value for this component.
 		 */
@@ -290,20 +301,20 @@ package com.bit101.components
 		{
 			return _minimum;
 		}
-
-        /**
-         * Gets/sets the update rate that the stepper will change its value if a button is held down.
-         */
-        public function get repeatTime():int
-        {
-            return _repeatTime;
-        }
-
-        public function set repeatTime(value:int):void
-        {
-            // shouldn't be any need to set it faster than 10 ms. guard against negative.
-            _repeatTime = Math.max(value, 10);
-            _repeatTimer.delay = _repeatTime;
-        }
-    }
+		
+		/**
+		 * Gets/sets the update rate that the stepper will change its value if a button is held down.
+		 */
+		public function get repeatTime():int
+		{
+			return _repeatTime;
+		}
+		
+		public function set repeatTime(value:int):void
+		{
+			// shouldn't be any need to set it faster than 10 ms. guard against negative.
+			_repeatTime = Math.max(value, 10);
+			_repeatTimer.delay = _repeatTime;
+		}
+	}
 }
