@@ -52,6 +52,12 @@ package com.bit101.components
 		protected var _orientation:String = VERTICAL;
 		protected var _tick:Number = 1;
 		
+		// ~~NEW features!!!~~
+		protected var _showCenterHandle:Boolean = true;
+		protected var _allowHandlePush:Boolean = true;
+		
+		protected var _midHandle:Sprite;
+		
 		public static const ALWAYS:String = "always";
 		public static const BOTTOM:String = "bottom";
 		public static const HORIZONTAL:String = "horizontal";
@@ -61,6 +67,8 @@ package com.bit101.components
 		public static const RIGHT:String = "right";
 		public static const TOP:String = "top";
 		public static const VERTICAL:String = "vertical";
+		
+		
 		
 		
 		
@@ -117,6 +125,13 @@ package com.bit101.components
 			_minHandle.useHandCursor = true;
 			addChild(_minHandle);
 			
+			_midHandle = new Sprite();
+			//_midHandle.filters = [getShadow(1)];
+			_midHandle.addEventListener(MouseEvent.MOUSE_DOWN, onDragMid);
+			_midHandle.buttonMode = true;
+			_midHandle.useHandCursor = true;
+			addChild(_midHandle);
+			
 			_maxHandle = new Sprite();
 			_maxHandle.filters = [getShadow(1)];
 			_maxHandle.addEventListener(MouseEvent.MOUSE_DOWN, onDragMax);
@@ -147,19 +162,47 @@ package com.bit101.components
 		{	
 			_minHandle.graphics.clear();
 			_minHandle.graphics.beginFill(Style.BUTTON_FACE);
+			
+			_midHandle.graphics.clear();
+			_midHandle.graphics.beginFill(Style.BUTTON_DOWN, 0.5);
+			
 			_maxHandle.graphics.clear();
 			_maxHandle.graphics.beginFill(Style.BUTTON_FACE);
 			if(_orientation == HORIZONTAL)
 			{
 				_minHandle.graphics.drawRect(1, 1, _height - 2, _height - 2);
 				_maxHandle.graphics.drawRect(1, 1, _height - 2, _height - 2);
+				
+				// Have to update positions here since they determine mid's width...
+				var range:Number = range = _width - _height * 2;
+				_minHandle.x = (_lowValue - _minimum) / (_maximum - _minimum) * range;
+				_maxHandle.x = _height + (_highValue - _minimum) / (_maximum - _minimum) * range;
+				
+				_midHandle.graphics.drawRect(1, 1, _maxHandle.x - (_minHandle.x + _minHandle.width), _height - 2);
+				
+				// Draw some grippy lines
+				_midHandle.graphics.lineStyle(1, Style.BUTTON_FACE);				
+				for (var i:uint = 3; i < _midHandle.width; i += 3) {
+					_midHandle.graphics.moveTo(i, 3);
+					_midHandle.graphics.lineTo(i, _midHandle.height - 1);
+				}
+				_midHandle.graphics.lineStyle();
+				
+				
+				
 			}
 			else
 			{
 				_minHandle.graphics.drawRect(1, 1, _width - 2, _width - 2);
+				// TODO
 				_maxHandle.graphics.drawRect(1, 1, _width - 2, _width - 2);
 			}
 			_minHandle.graphics.endFill();
+			_midHandle.graphics.endFill();
+			_maxHandle.graphics.endFill();
+			
+			_midHandle.visible = _showCenterHandle; 
+
 			positionHandles();
 		}
 		
@@ -174,12 +217,14 @@ package com.bit101.components
 			{
 				range = _width - _height * 2;
 				_minHandle.x = (_lowValue - _minimum) / (_maximum - _minimum) * range;
+				_midHandle.x = _minHandle.x + _minHandle.width;
 				_maxHandle.x = _height + (_highValue - _minimum) / (_maximum - _minimum) * range;
 			}
 			else
 			{
 				range = _height - _width * 2;
 				_minHandle.y = _height - _width - (_lowValue - _minimum) / (_maximum - _minimum) * range;
+				// TODO
 				_maxHandle.y = _height - _width * 2 - (_highValue - _minimum) / (_maximum - _minimum) * range;
 			}
 			updateLabels();
@@ -279,10 +324,16 @@ package com.bit101.components
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, onMinSlide);
 			if(_orientation == HORIZONTAL)
 			{
-				_minHandle.startDrag(false, new Rectangle(0, 0, _maxHandle.x - _height, 0));
+				if (_allowHandlePush) {
+					_minHandle.startDrag(false, new Rectangle(0, 0, _width - _height * 2, 0));
+				}
+				else {
+					_minHandle.startDrag(false, new Rectangle(0, 0, _maxHandle.x - _height, 0));
+				}
 			}
 			else
 			{
+				// TODO allow handle push
 				_minHandle.startDrag(false, new Rectangle(0, _maxHandle.y + _width, 0, _height - _maxHandle.y - _width * 2));
 			}
 			if(_labelMode == MOVE)
@@ -291,6 +342,31 @@ package com.bit101.components
 				_highLabel.visible = true;
 			}
 		}
+		
+		
+		/**
+		 * Internal mouseDown handler for the low value handle. Starts dragging the handle.
+		 * @param event The MouseEvent passed by the system.
+		 */
+		protected function onDragMid(event:MouseEvent):void
+		{
+			stage.addEventListener(MouseEvent.MOUSE_UP, onDrop);
+			stage.addEventListener(MouseEvent.MOUSE_MOVE, onMidSlide);
+			if(_orientation == HORIZONTAL)
+			{
+				_minHandle.startDrag(false, new Rectangle(0, 0, _width - ((_maxHandle.x - _minHandle.x) + _height), 0)); // TODO
+			}
+			else
+			{
+				_minHandle.startDrag(false, new Rectangle(0, _maxHandle.y + _width, 0, _height - _maxHandle.y - _width * 2));  // TODO
+			}
+			if(_labelMode == MOVE)
+			{
+				_lowLabel.visible = true;
+				_highLabel.visible = true;
+			}
+		}		
+		
 		
 		/**
 		 * Internal mouseDown handler for the high value handle. Starts dragging the handle.
@@ -302,10 +378,16 @@ package com.bit101.components
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, onMaxSlide);
 			if(_orientation == HORIZONTAL)
 			{
-				_maxHandle.startDrag(false, new Rectangle(_minHandle.x + _height, 0, _width - _height - _minHandle.x - _height, 0));
+				if (_allowHandlePush) {
+					_maxHandle.startDrag(false, new Rectangle(_height, 0, _width - _height * 2, 0));
+				}
+				else {
+					_maxHandle.startDrag(false, new Rectangle(_minHandle.x + _height, 0, _width - _height - _minHandle.x - _height, 0));
+				}
 			}
 			else
 			{
+				// TODO allow handle push
 				_maxHandle.startDrag(false, new Rectangle(0, 0, 0, _minHandle.y - _width));
 			}
 			if(_labelMode == MOVE)
@@ -323,6 +405,7 @@ package com.bit101.components
 		{
 			stage.removeEventListener(MouseEvent.MOUSE_UP, onDrop);
 			stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMinSlide);
+			stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMidSlide);			
 			stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMaxSlide);
 			stopDrag();
 			if(_labelMode == MOVE)
@@ -342,17 +425,49 @@ package com.bit101.components
 			if(_orientation == HORIZONTAL)
 			{
 				_lowValue = _minHandle.x / (_width - _height * 2) * (_maximum - _minimum) + _minimum;
+				if (_allowHandlePush && (_lowValue > _highValue)) _highValue = _lowValue;
 			}
 			else
 			{
 				_lowValue = (_height - _width - _minHandle.y) / (height - _width * 2) * (_maximum - _minimum) + _minimum;
+				// TODO allow push
 			}
 			if(_lowValue != oldValue)
 			{
 				dispatchEvent(new Event(Event.CHANGE));
 			}
-			updateLabels();
+			drawHandles();
+			positionHandles();
+			updateLabels();			
 		}
+		
+		
+		/**
+		 * Internal mouseMove handler for when the mid value handle is being moved.
+		 * @param event The MouseEvent passed by the system.
+		 */
+		protected function onMidSlide(event:MouseEvent):void
+		{
+			var oldValue:Number = _lowValue;
+			if(_orientation == HORIZONTAL)
+			{
+				var valueDistance:Number = _highValue - _lowValue;
+				_lowValue = _minHandle.x / (_width - _height * 2) * (_maximum - _minimum) + _minimum;
+				_highValue = _lowValue + valueDistance;				
+			}
+			else
+			{
+				_lowValue = (_height - _width - _minHandle.y) / (height - _width * 2) * (_maximum - _minimum) + _minimum;  // TODO
+				// TODO
+			}
+			if(_lowValue != oldValue)
+			{
+				dispatchEvent(new Event(Event.CHANGE));
+			}
+			drawHandles();
+			positionHandles();
+			updateLabels();
+		}		
 
 		/**
 		 * Internal mouseMove handler for when the high value handle is being moved.
@@ -364,6 +479,7 @@ package com.bit101.components
 			if(_orientation == HORIZONTAL)
 			{
 				_highValue = (_maxHandle.x - _height) / (_width - _height * 2) * (_maximum - _minimum) + _minimum;
+				if (_allowHandlePush && (_highValue < _lowValue)) _lowValue = _highValue;
 			}
 			else
 			{
@@ -373,6 +489,8 @@ package com.bit101.components
 			{
 				dispatchEvent(new Event(Event.CHANGE));
 			}
+			drawHandles();
+			positionHandles();
 			updateLabels();
 		}
 		
@@ -491,6 +609,35 @@ package com.bit101.components
 		public function get tick():Number
 		{
 			return _tick;
+		}
+
+		
+		/**
+		 * Gets / sets the visibility of a center handle to drag both the min and max handles simultaneously. 
+		 */		
+		public function get showCenterHandle():Boolean
+		{
+			return _showCenterHandle;
+		}
+		public function set showCenterHandle(value:Boolean):void
+		{
+			_showCenterHandle = value;
+			drawHandles();
+			positionHandles();			
+		}
+
+		/**
+		 * Gets / sets ability for the max handle to "push" the low handle further down. (And vice versa.) 
+		 */		
+		public function get allowHandlePush():Boolean
+		{
+			return _allowHandlePush;
+		}
+		public function set allowHandlePush(value:Boolean):void
+		{
+			_allowHandlePush = value;
+			drawHandles();
+			positionHandles();			
 		}
 
 
