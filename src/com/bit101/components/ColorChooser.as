@@ -64,6 +64,7 @@ package com.bit101.components
 		protected var _tmpColorChoice:uint = _value;
 		protected var _usePopup:Boolean = false;
 		protected var _value:uint = 0xff0000;
+		protected var _showInputField:Boolean = true;
 		
 		
 		/**
@@ -351,5 +352,26 @@ package com.bit101.components
 			g.endFill();	
 			return(gs);
 		}
+
+		public function get showInputField():Boolean {
+			return _showInputField;
+		}
+
+		public function set showInputField(value:Boolean):void {
+			_showInputField = value;
+			
+			if (_showInputField) {
+				_input.visible = true;
+				_swatch.x = 50;
+			}
+			else {
+				_input.visible = false;
+				_swatch.x = 0;
+			}
+			
+			
+			draw();
+		}
+
 	}
 }
