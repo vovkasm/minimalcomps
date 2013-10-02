@@ -168,13 +168,17 @@ package com.bit101.components
 			
 			_maxHandle.graphics.clear();
 			_maxHandle.graphics.beginFill(Style.BUTTON_FACE);
+			
+			var range:Number;
+			var i:uint;
+			
 			if(_orientation == HORIZONTAL)
 			{
 				_minHandle.graphics.drawRect(1, 1, _height - 2, _height - 2);
 				_maxHandle.graphics.drawRect(1, 1, _height - 2, _height - 2);
 				
 				// Have to update positions here since they determine mid's width...
-				var range:Number = range = _width - _height * 2;
+				range = _width - _height * 2;
 				_minHandle.x = (_lowValue - _minimum) / (_maximum - _minimum) * range;
 				_maxHandle.x = _height + (_highValue - _minimum) / (_maximum - _minimum) * range;
 				
@@ -182,20 +186,31 @@ package com.bit101.components
 				
 				// Draw some grippy lines
 				_midHandle.graphics.lineStyle(1, Style.BUTTON_FACE);				
-				for (var i:uint = 3; i < _midHandle.width; i += 3) {
+				for (i = 3; i < _midHandle.width; i += 3) {
 					_midHandle.graphics.moveTo(i, 3);
 					_midHandle.graphics.lineTo(i, _midHandle.height - 1);
 				}
 				_midHandle.graphics.lineStyle();
-				
-				
-				
 			}
 			else
 			{
 				_minHandle.graphics.drawRect(1, 1, _width - 2, _width - 2);
-				// TODO
 				_maxHandle.graphics.drawRect(1, 1, _width - 2, _width - 2);
+				
+				// Have to update positions here since they determine mid's width...
+				range = _height - _width * 2;
+				_minHandle.y = (_lowValue - _minimum) / (_maximum - _minimum) * range;
+				_maxHandle.y = _width + (_highValue - _minimum) / (_maximum - _minimum) * range;
+				
+				_midHandle.graphics.drawRect(1, 1, _width - 2, _maxHandle.y - (_minHandle.y + _minHandle.height));
+				
+				// Draw some grippy lines
+				_midHandle.graphics.lineStyle(1, Style.BUTTON_FACE);				
+				for (i = 3; i < _midHandle.height; i += 3) {
+					_midHandle.graphics.moveTo(3, i);
+					_midHandle.graphics.lineTo(_midHandle.width - 1, i);
+				}
+				_midHandle.graphics.lineStyle();				
 			}
 			_minHandle.graphics.endFill();
 			_midHandle.graphics.endFill();
@@ -224,7 +239,7 @@ package com.bit101.components
 			{
 				range = _height - _width * 2;
 				_minHandle.y = _height - _width - (_lowValue - _minimum) / (_maximum - _minimum) * range;
-				// TODO
+				_midHandle.y = _maxHandle.y + _maxHandle.height;
 				_maxHandle.y = _height - _width * 2 - (_highValue - _minimum) / (_maximum - _minimum) * range;
 			}
 			updateLabels();
@@ -304,6 +319,7 @@ package com.bit101.components
 			super.draw();
 			drawBack();
 			drawHandles();
+			positionHandles();
 		}
 		
 
@@ -333,8 +349,12 @@ package com.bit101.components
 			}
 			else
 			{
-				// TODO allow handle push
-				_minHandle.startDrag(false, new Rectangle(0, _maxHandle.y + _width, 0, _height - _maxHandle.y - _width * 2));
+				if (_allowHandlePush) {
+					_minHandle.startDrag(false, new Rectangle(0, _width, 0, _height - _width * 2));
+				}
+				else {
+					_minHandle.startDrag(false, new Rectangle(0, _maxHandle.y + _width, 0, _height - _maxHandle.y - _width * 2));	
+				}
 			}
 			if(_labelMode == MOVE)
 			{
@@ -354,11 +374,11 @@ package com.bit101.components
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, onMidSlide);
 			if(_orientation == HORIZONTAL)
 			{
-				_minHandle.startDrag(false, new Rectangle(0, 0, _width - ((_maxHandle.x - _minHandle.x) + _height), 0)); // TODO
+				_minHandle.startDrag(false, new Rectangle(0, 0, _width - ((_maxHandle.x - _minHandle.x) + _height), 0));
 			}
 			else
 			{
-				_minHandle.startDrag(false, new Rectangle(0, _maxHandle.y + _width, 0, _height - _maxHandle.y - _width * 2));  // TODO
+				_minHandle.startDrag(false, new Rectangle(0, _minHandle.y - _maxHandle.y, 0, _height - (_minHandle.y - _maxHandle.y) - _width));				
 			}
 			if(_labelMode == MOVE)
 			{
@@ -387,8 +407,12 @@ package com.bit101.components
 			}
 			else
 			{
-				// TODO allow handle push
-				_maxHandle.startDrag(false, new Rectangle(0, 0, 0, _minHandle.y - _width));
+				if (_allowHandlePush) {
+					_maxHandle.startDrag(false, new Rectangle(0, 0, 0, _height - _width * 2));
+				}
+				else {
+					_maxHandle.startDrag(false, new Rectangle(0, 0, 0, _minHandle.y - _width));	
+				}
 			}
 			if(_labelMode == MOVE)
 			{
@@ -425,13 +449,14 @@ package com.bit101.components
 			if(_orientation == HORIZONTAL)
 			{
 				_lowValue = _minHandle.x / (_width - _height * 2) * (_maximum - _minimum) + _minimum;
-				if (_allowHandlePush && (_lowValue > _highValue)) _highValue = _lowValue;
 			}
 			else
 			{
 				_lowValue = (_height - _width - _minHandle.y) / (height - _width * 2) * (_maximum - _minimum) + _minimum;
-				// TODO allow push
 			}
+			
+			if (allowHandlePush && (_lowValue > _highValue)) _highValue = _lowValue;			
+			
 			if(_lowValue != oldValue)
 			{
 				dispatchEvent(new Event(Event.CHANGE));
@@ -449,16 +474,30 @@ package com.bit101.components
 		protected function onMidSlide(event:MouseEvent):void
 		{
 			var oldValue:Number = _lowValue;
+			var valueDistance:Number = _highValue - _lowValue;			
 			if(_orientation == HORIZONTAL)
 			{
-				var valueDistance:Number = _highValue - _lowValue;
+				
 				_lowValue = _minHandle.x / (_width - _height * 2) * (_maximum - _minimum) + _minimum;
 				_highValue = _lowValue + valueDistance;				
 			}
 			else
 			{
-				_lowValue = (_height - _width - _minHandle.y) / (height - _width * 2) * (_maximum - _minimum) + _minimum;  // TODO
-				// TODO
+				//_lowValue = _minHandle.y / (_height - _width * 2) * (_maximum - _minimum) + _minimum;
+				
+				trace(_minHandle.y);
+				
+				_lowValue = (_height - _width - _minHandle.y) / (height - _width * 2) * (_maximum - _minimum) + _minimum;
+				
+				//_lowValue =  (1 - (_minHandle.y / (_height - _width * 2))) * (_maximum - _minimum) + _minimum;				
+				
+				trace("Low value: " + _lowValue);
+				
+				//_lowValue = ((_height - _minHandle.y) / (_height - _width *2)) * (_maximum - _minimum) + _minimum;
+				_highValue = _lowValue + valueDistance;
+				
+				//_highValue = _minHandle.y / (_height - _width * 2) * (_maximum - _minimum) + _minimum;
+				//_lowValue = _highValue + valueDistance;
 			}
 			if(_lowValue != oldValue)
 			{
@@ -479,12 +518,14 @@ package com.bit101.components
 			if(_orientation == HORIZONTAL)
 			{
 				_highValue = (_maxHandle.x - _height) / (_width - _height * 2) * (_maximum - _minimum) + _minimum;
-				if (_allowHandlePush && (_highValue < _lowValue)) _lowValue = _highValue;
 			}
 			else
 			{
 				_highValue = (_height - _width * 2 - _maxHandle.y) / (_height - _width * 2) * (_maximum - _minimum) + _minimum;
 			}
+			
+			if (_allowHandlePush && (_highValue < _lowValue)) _lowValue = _highValue;			
+			
 			if(_highValue != oldValue)
 			{
 				dispatchEvent(new Event(Event.CHANGE));
