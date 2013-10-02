@@ -139,10 +139,27 @@ package com.bit101.components
 			_maxHandle.useHandCursor = true;
 			addChild(_maxHandle);			
 			
-			_lowLabel = new Label(this);
-			_highLabel = new Label(this);
+			_lowLabel = new Label();
+			_highLabel = new Label();
+			manageLabels();
+			
 			_lowLabel.visible = (_labelMode == ALWAYS);
 		}
+		
+		
+		// Keep labels off of the display list if possible to preserve widget dimensions
+		private function manageLabels():void {
+			if ((_labelMode == ALWAYS) || (_labelMode == MOVE)) {
+				// Go ahead and add the labels
+				this.addChild(_lowLabel);
+				this.addChild(_highLabel);
+			}
+			else {
+				if (this.contains(_lowLabel)) this.removeChild(_lowLabel);
+				if (this.contains(_highLabel)) this.removeChild(_highLabel);
+			}
+		}
+		
 		
 		/**
 		 * Draws the back of the slider.
@@ -184,9 +201,9 @@ package com.bit101.components
 				
 				_midHandle.graphics.drawRect(1, 1, _maxHandle.x - (_minHandle.x + _minHandle.width), _height - 2);
 				
-				// Draw some grippy lines
+				// Draw some grippy lines (offset so they never move...)
 				_midHandle.graphics.lineStyle(1, Style.BUTTON_FACE);				
-				for (i = 3; i < _midHandle.width; i += 3) {
+				for (i = 3 - (_minHandle.x % 3); i < _midHandle.width; i += 3) {
 					_midHandle.graphics.moveTo(i, 3);
 					_midHandle.graphics.lineTo(i, _midHandle.height - 1);
 				}
@@ -204,7 +221,7 @@ package com.bit101.components
 				
 				_midHandle.graphics.drawRect(1, 1, _width - 2, _maxHandle.y - (_minHandle.y + _minHandle.height));
 				
-				// Draw some grippy lines
+				// Draw some grippy lines (offset so they never move...)
 				_midHandle.graphics.lineStyle(1, Style.BUTTON_FACE);				
 				for (i = 3; i < _midHandle.height; i += 3) {
 					_midHandle.graphics.moveTo(3, i);
@@ -217,7 +234,7 @@ package com.bit101.components
 			_maxHandle.graphics.endFill();
 			
 			_midHandle.visible = _showCenterHandle; 
-
+			
 			positionHandles();
 		}
 		
@@ -254,7 +271,7 @@ package com.bit101.components
 			_highLabel.text = getLabelForValue(highValue);
 			_lowLabel.draw();
 			_highLabel.draw();
-
+			
 			if(_orientation == VERTICAL)
 			{
 				_lowLabel.y = _minHandle.y + (_width - _lowLabel.height) * 0.5;
@@ -287,7 +304,7 @@ package com.bit101.components
 				
 			}
 		}
-
+		
 		/**
 		 * Generates a label string for the given value.
 		 * @param value The number to create a label for.
@@ -322,7 +339,7 @@ package com.bit101.components
 			positionHandles();
 		}
 		
-
+		
 		
 		
 		
@@ -507,7 +524,7 @@ package com.bit101.components
 			positionHandles();
 			updateLabels();
 		}		
-
+		
 		/**
 		 * Internal mouseMove handler for when the high value handle is being moved.
 		 * @param event The MouseEvent passed by the system.
@@ -550,7 +567,7 @@ package com.bit101.components
 		{
 			return _minimum;
 		}
-
+		
 		/**
 		 * Gets / sets the maximum value of the slider.
 		 */
@@ -566,7 +583,7 @@ package com.bit101.components
 		{
 			return _maximum;
 		}
-
+		
 		/**
 		 * Gets / sets the low value of this slider.
 		 */
@@ -582,7 +599,7 @@ package com.bit101.components
 		{
 			return Math.round(_lowValue / _tick) * _tick;
 		}
-
+		
 		/**
 		 * Gets / sets the high value for this slider.
 		 */
@@ -598,7 +615,7 @@ package com.bit101.components
 		{
 			return Math.round(_highValue / _tick) * _tick;
 		}
-
+		
 		/**
 		 * Sets / gets when the labels will appear. Can be "never", "move", or "always"
 		 */
@@ -607,12 +624,13 @@ package com.bit101.components
 			_labelMode = value;
 			_highLabel.visible = (_labelMode == ALWAYS);
 			_lowLabel.visible = (_labelMode == ALWAYS);
+			manageLabels();
 		}
 		public function get labelMode():String
 		{
 			return _labelMode;
 		}
-
+		
 		/**
 		 * Sets / gets where the labels will appear. "left" or "right" for vertical sliders, "top" or "bottom" for horizontal.
 		 */
@@ -625,7 +643,7 @@ package com.bit101.components
 		{
 			return _labelPosition;
 		}
-
+		
 		/**
 		 * Sets / gets how many decimal points of precisions will be displayed on the labels.
 		 */
@@ -638,7 +656,7 @@ package com.bit101.components
 		{
 			return _labelPrecision;
 		}
-
+		
 		/**
 		 * Gets / sets the tick value of this slider. This round the value to the nearest multiple of this number. 
 		 */
@@ -651,7 +669,7 @@ package com.bit101.components
 		{
 			return _tick;
 		}
-
+		
 		
 		/**
 		 * Gets / sets the visibility of a center handle to drag both the min and max handles simultaneously. 
@@ -666,7 +684,7 @@ package com.bit101.components
 			drawHandles();
 			positionHandles();			
 		}
-
+		
 		/**
 		 * Gets / sets ability for the max handle to "push" the low handle further down. (And vice versa.) 
 		 */		
@@ -680,7 +698,7 @@ package com.bit101.components
 			drawHandles();
 			positionHandles();			
 		}
-
-
+		
+		
 	}
 }
