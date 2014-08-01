@@ -153,6 +153,7 @@ package com.bit101.components
 			
 			doAlignment();
 			_height += _spacing * (numChildren - 1);
+			dispatchEvent(new Event(Event.RESIZE));
 		}
 		
 		/**
